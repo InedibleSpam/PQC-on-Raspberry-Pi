@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEVICE="Laptop"
+DEVICE="Raspberry PI"
 ITERATIONS=5
 OUTPUT="classical_${DEVICE}_${ITERATIONS}.csv"
 
