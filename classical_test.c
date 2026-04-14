@@ -31,7 +31,8 @@ int main(){
 	EVP_PKEY_keygen(pctx, &key1);
 	end = get_time();
 	printf("ECDH KeyGen time: %f seconds\n", end - start);
-
+	//printf(key1);
+	//printf(key2);
 	EVP_PKEY_keygen(pctx, &key2);
 
 	EVP_PKEY_CTX *derive_ctx;
