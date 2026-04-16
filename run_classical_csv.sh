@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEVICE="Raspberry PI"
-ITERATIONS=5
+ITERATIONS=1000
 OUTPUT="classical_${DEVICE}_${ITERATIONS}.csv"
 
 echo "Device,Algorithm,Type,Operation,Iteration,Time" > "$OUTPUT"
