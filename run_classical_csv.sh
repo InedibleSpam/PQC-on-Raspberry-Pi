@@ -1,17 +1,19 @@
 #!/bin/bash
 
-DEVICE="Raspberry PI"
+# Set variables FIRST
+DEVICE="Laptop"
 ITERATIONS=5
 OUTPUT="classical_${DEVICE}_${ITERATIONS}.csv"
 
+# Create CSV with header
 echo "Device,Algorithm,Type,Operation,Iteration,Time" > "$OUTPUT"
 
+# Loop runs
 for i in $(seq 1 $ITERATIONS)
 do
     ./classical_test | while read line
     do
-
-        # Extract ONLY the number safely (works no matter formatting)
+        # Extract number safely
         TIME=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+')
 
         if [[ $line == *"ECDH KeyGen"* ]]; then
