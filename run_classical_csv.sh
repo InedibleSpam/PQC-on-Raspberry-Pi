@@ -1,35 +1,43 @@
 #!/bin/bash
 
-# Set variables FIRST
 DEVICE="Laptop"
 ITERATIONS=5
-OUTPUT="classical_${DEVICE}_${ITERATIONS}.csv"
+OUTPUT="classical_comparison_${DEVICE}.csv"
 
-# Create CSV with header
 echo "Device,Algorithm,Type,Operation,Iteration,Time" > "$OUTPUT"
 
-# Loop runs
+echo "Starting Classical Benchmarks (ECDH, ECDSA, RSA)..."
+
 for i in $(seq 1 $ITERATIONS)
 do
+    echo "Running Iteration $i..."
+    
     ./classical_test | while read line
     do
-        # Extract number safely
         TIME=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+')
 
-        if [[ $line == *"ECDH KeyGen"* ]]; then
-            echo "$DEVICE,ECDH,Classical,KeyGen,$i,$TIME" >> "$OUTPUT"
-
-        elif [[ $line == *"ECDH Shared Secret"* ]]; then
-            echo "$DEVICE,ECDH,Classical,SharedSecret,$i,$TIME" >> "$OUTPUT"
-
-        elif [[ $line == *"ECDSA Sign"* ]]; then
-            echo "$DEVICE,ECDSA,Classical,Sign,$i,$TIME" >> "$OUTPUT"
-
-        elif [[ $line == *"ECDSA Verify"* ]]; then
-            echo "$DEVICE,ECDSA,Classical,Verify,$i,$TIME" >> "$OUTPUT"
+        # Identify Algorithm
+        if [[ $line == *"ECDH"* ]]; then
+            ALG="ECDH-P256"
+        elif [[ $line == *"ECDSA"* ]]; then
+            ALG="ECDSA-P256"
+        elif [[ $line == *"RSA"* ]]; then
+            ALG="RSA-3072"
+        else
+            continue
         fi
 
+        # Identify Operation
+        if [[ $line == *"KeyGen"* ]]; then
+            echo "$DEVICE,$ALG,Classical,KeyGen,$i,$TIME" >> "$OUTPUT"
+        elif [[ $line == *"Derivation"* ]]; then
+            echo "$DEVICE,$ALG,Classical,Derivation,$i,$TIME" >> "$OUTPUT"
+        elif [[ $line == *"Sign"* ]]; then
+            echo "$DEVICE,$ALG,Classical,Sign,$i,$TIME" >> "$OUTPUT"
+        elif [[ $line == *"Verify"* ]]; then
+            echo "$DEVICE,$ALG,Classical,Verify,$i,$TIME" >> "$OUTPUT"
+        fi
     done
 done
 
-echo "Done. Results saved to $OUTPUT"
+echo "Done! Classical results saved to $OUTPUT"
