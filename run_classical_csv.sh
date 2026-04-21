@@ -1,51 +1,120 @@
 #!/bin/bash
 
-# Configuration settings for your current test run
+# =========================================================
+# CONFIGURATION SECTION
+# =========================================================
+
+# Label for dataset (used to compare Laptop vs Raspberry Pi)
 DEVICE="Laptop"
+
+# Number of times to repeat the experiment for statistical accuracy
 ITERATIONS=5
-OUTPUT="classical_comparison_${DEVICE}.csv"
 
-# Initialize the CSV file with headers
-echo "Device,Algorithm,Type,Operation,Iteration,Time" > "$OUTPUT"
+# Output CSV file name
+OUTPUT="classical_${DEVICE}_full.csv"
 
-echo "Starting Classical Benchmarks (ECDH, ECDSA, RSA)..."
+# Create CSV file and write header row
+# Added MemoryKB and CPU columns for embedded systems analysis
+echo "Device,Algorithm,Type,Operation,Iteration,Time,MemoryKB,CPU" > "$OUTPUT"
+
+echo "Starting Classical Crypto Benchmarks (with memory + CPU tracking)..."
+
+# =========================================================
+# MAIN EXPERIMENT LOOP
+# =========================================================
 
 for i in $(seq 1 $ITERATIONS)
 do
-    echo "Running Iteration $i..."
-    
-    ./classical_test | while read line
+    echo "Running iteration $i"
+
+    # =====================================================
+    # Run program WITH resource tracking enabled
+    # /usr/bin/time -v gives:
+    #   - execution output (stderr)
+    #   - memory usage
+    #   - CPU usage
+    # =====================================================
+
+    OUTPUT_TEXT=$(/usr/bin/time -v ./classical_test 2>&1)
+
+    # =====================================================
+    # Extract memory usage (peak RAM used)
+    # This is critical for embedded system viability
+    # =====================================================
+
+    MEM=$(echo "$OUTPUT_TEXT" | grep "Maximum resident set size" | awk '{print $6}')
+
+    # =====================================================
+    # Extract CPU usage percentage
+    # Shows how efficiently the CPU was used
+    # =====================================================
+
+    CPU=$(echo "$OUTPUT_TEXT" | grep "Percent of CPU this job got" | awk '{print $7}')
+
+    # =====================================================
+    # Process each line of program output
+    # Each line corresponds to one cryptographic operation
+    # =====================================================
+
+    echo "$OUTPUT_TEXT" | while read line
     do
-        # Extract the high-precision time value from the C output
+        # -------------------------------------------------
+        # Extract numeric time value from the line
+        # Example: "ECDSA Sign time: 0.000123 seconds"
+        # regex pulls only the number
+        # -------------------------------------------------
         TIME=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+')
 
-        # 1. IDENTIFY ALGORITHM
-        # Logic updated to distinguish between Exchange (ECDH) and Signing (ECDSA)
+        # -------------------------------------------------
+        # Identify which algorithm produced this line
+        # -------------------------------------------------
         if [[ $line == *"ECDH"* ]]; then
             ALG="ECDH-P256"
+
         elif [[ $line == *"ECDSA"* ]]; then
             ALG="ECDSA-P256"
+
         elif [[ $line == *"RSA"* ]]; then
             ALG="RSA-3072"
+
         else
-            # Skip noise like header text or verification results
+            # Skip non-matching lines (headers, debug text, etc.)
             continue
         fi
 
-        # 2. IDENTIFY OPERATION AND LOG TO CSV
+        # -------------------------------------------------
+        # Identify operation type (what crypto step it was)
+        # -------------------------------------------------
         if [[ $line == *"KeyGen"* ]]; then
-            echo "$DEVICE,$ALG,Classical,KeyGen,$i,$TIME" >> "$OUTPUT"
-            
+            OP="KeyGen"
+
         elif [[ $line == *"Derivation"* ]]; then
-            echo "$DEVICE,$ALG,Classical,Derivation,$i,$TIME" >> "$OUTPUT"
-            
+            OP="Derivation"
+
         elif [[ $line == *"Sign"* ]]; then
-            echo "$DEVICE,$ALG,Classical,Sign,$i,$TIME" >> "$OUTPUT"
-            
+            OP="Sign"
+
         elif [[ $line == *"Verify"* ]]; then
-            echo "$DEVICE,$ALG,Classical,Verify,$i,$TIME" >> "$OUTPUT"
+            OP="Verify"
+
+        else
+            # Ignore irrelevant lines
+            continue
         fi
+
+        # -------------------------------------------------
+        # Write structured row into CSV file
+        #
+        # Format:
+        # Device,Algorithm,Type,Operation,Iteration,Time,MemoryKB,CPU
+        # -------------------------------------------------
+        echo "$DEVICE,$ALG,Classical,$OP,$i,$TIME,$MEM,$CPU" >> "$OUTPUT"
+
     done
 done
 
-echo "Done! Classical results saved to $OUTPUT"
+# =========================================================
+# FINAL MESSAGE
+# =========================================================
+
+echo "Done! Results saved to $OUTPUT"
