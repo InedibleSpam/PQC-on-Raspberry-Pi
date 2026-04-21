@@ -1,4 +1,25 @@
 Device,Algorithm,Type,Operation,Iteration,Time
+<<<<<<< HEAD
+Laptop,ML-DSA-44,PQC,KeyGen,1,0.047294
+Laptop,ML-DSA-44,PQC,Sign,1,0.001663
+Laptop,ML-DSA-44,PQC,Verify,1,0.000213
+Laptop,ML-DSA-44,PQC,Sign,1,
+Laptop,ML-DSA-44,PQC,KeyGen,2,0.035327
+Laptop,ML-DSA-44,PQC,Sign,2,0.000851
+Laptop,ML-DSA-44,PQC,Verify,2,0.000130
+Laptop,ML-DSA-44,PQC,Sign,2,
+Laptop,ML-DSA-44,PQC,KeyGen,3,0.027972
+Laptop,ML-DSA-44,PQC,Sign,3,0.000846
+Laptop,ML-DSA-44,PQC,Verify,3,0.000131
+Laptop,ML-DSA-44,PQC,Sign,3,
+Laptop,ML-DSA-44,PQC,KeyGen,4,0.024119
+Laptop,ML-DSA-44,PQC,Sign,4,0.000855
+Laptop,ML-DSA-44,PQC,Verify,4,0.000116
+Laptop,ML-DSA-44,PQC,Sign,4,
+Laptop,ML-DSA-44,PQC,KeyGen,5,0.025142
+Laptop,ML-DSA-44,PQC,Sign,5,0.000834
+Laptop,ML-DSA-44,PQC,Verify,5,0.000116
+=======
 Laptop,ML-DSA-44,PQC,KeyGen,1,0.007163
 Laptop,ML-DSA-44,PQC,Sign,1,0.000189
 Laptop,ML-DSA-44,PQC,Verify,1,0.000034
@@ -18,4 +39,5 @@ Laptop,ML-DSA-44,PQC,Sign,4,
 Laptop,ML-DSA-44,PQC,KeyGen,5,0.006423
 Laptop,ML-DSA-44,PQC,Sign,5,0.000156
 Laptop,ML-DSA-44,PQC,Verify,5,0.000030
+>>>>>>> 810e039ca9ae957d98f0bce17c6f652719cf291b
 Laptop,ML-DSA-44,PQC,Sign,5,
