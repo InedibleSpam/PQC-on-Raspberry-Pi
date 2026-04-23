@@ -5,10 +5,30 @@ DEVICE="RaspberryPi_5"
 ITERATIONS=1000
 OUTPUT="pqc_kem_${DEVICE}_${ITERATIONS}.csv"
 
+<<<<<<< HEAD
 # CSV Header: Matches the Classical structure for easy merging later
 echo "Device,Algorithm,Type,Operation,Iteration,Time,MemoryKB,CPU,CommSize" > "$OUTPUT"
 
 echo "Starting PQC KEM Benchmarks..."
+=======
+# Label for dataset (Laptop vs Raspberry Pi)
+DEVICE="Raspberry Pi"
+
+# Number of repeated runs for statistical stability
+ITERATIONS=1000
+
+# Output CSV file name
+OUTPUT="pqc_kem_comparison_${DEVICE}_${ITERATIONS}.csv"
+
+# CSV header with extended metrics (Time + Memory + CPU)
+echo "Device,Algorithm,Type,Operation,Iteration,Time,MemoryKB,CPU" > "$OUTPUT"
+
+echo "Starting PQC KEM Benchmarks (Kyber, BIKE, McEliece)..."
+
+# =========================================================
+# MAIN EXPERIMENT LOOP
+# =========================================================
+>>>>>>> aafb2b31b8d8ba19c669733243cd336b4087d663
 
 for i in $(seq 1 $ITERATIONS)
 do
@@ -59,4 +79,12 @@ do
     done
 done
 
+<<<<<<< HEAD
 echo "PQC Benchmarks Complete. Data saved to $OUTPUT"
+=======
+# =========================================================
+# FINAL OUTPUT MESSAGE
+# =========================================================
+
+echo "Done! PQC results saved to $OUTPUT"
+>>>>>>> aafb2b31b8d8ba19c669733243cd336b4087d663
