@@ -1,116 +1,62 @@
 #!/bin/bash
 
-# =========================================================
-# CONFIGURATION SECTION
-# =========================================================
+# Configuration for labeling and statistical depth
+DEVICE="RaspberryPi_5"
+ITERATIONS=1000
+OUTPUT="pqc_kem_${DEVICE}_${ITERATIONS}.csv"
 
-# Label for dataset (Laptop vs Raspberry Pi)
-DEVICE="Laptop"
+# CSV Header: Matches the Classical structure for easy merging later
+echo "Device,Algorithm,Type,Operation,Iteration,Time,MemoryKB,CPU,CommSize" > "$OUTPUT"
 
-# Number of repeated runs for statistical stability
-ITERATIONS=5
-
-# Output CSV file name
-OUTPUT="pqc_kem_comparison_${DEVICE}_full.csv"
-
-# CSV header with extended metrics (Time + Memory + CPU)
-echo "Device,Algorithm,Type,Operation,Iteration,Time,MemoryKB,CPU" > "$OUTPUT"
-
-echo "Starting PQC KEM Benchmarks (Kyber, BIKE, McEliece)..."
-
-# =========================================================
-# MAIN EXPERIMENT LOOP
-# =========================================================
+echo "Starting PQC KEM Benchmarks..."
 
 for i in $(seq 1 $ITERATIONS)
 do
     echo "Running iteration $i..."
 
-    # =====================================================
-    # Run PQC test WITH system resource tracking
-    # /usr/bin/time -v provides:
-    #   - program output (stderr redirected)
-    #   - memory usage
-    #   - CPU usage
-    # =====================================================
-
+    # Capture system metrics (RSS/CPU) using time -v
     OUTPUT_TEXT=$(/usr/bin/time -v ./pqc_kem_test 2>&1)
 
-    # =====================================================
-    # Extract peak memory usage (very important for embedded systems)
-    # =====================================================
-
+    # Extract Peak RSS (Maximum Resident Set Size)
     MEM=$(echo "$OUTPUT_TEXT" | grep "Maximum resident set size" | awk '{print $6}')
-
-    # =====================================================
-    # Extract CPU usage percentage
-    # =====================================================
-
+    
+    # Extract CPU Load percentage
     CPU=$(echo "$OUTPUT_TEXT" | grep "Percent of CPU this job got" | awk '{print $7}')
 
-    # =====================================================
-    # Process line-by-line output from PQC test program
-    # =====================================================
+    # Extract Algorithm-specific CommSize footprints
+    # Uses regex to find the 'Total=' value for each specific algorithm
+    KYBER_COMM=$(echo "$OUTPUT_TEXT" | grep "kyber_768 Comm Size" | grep -oP 'Total=\K[0-9]+')
+    BIKE_COMM=$(echo "$OUTPUT_TEXT" | grep "bike_l1 Comm Size" | grep -oP 'Total=\K[0-9]+')
+    MCELIECE_COMM=$(echo "$OUTPUT_TEXT" | grep "mceliece_348864 Comm Size" | grep -oP 'Total=\K[0-9]+')
 
     echo "$OUTPUT_TEXT" | while read line
     do
-        # -------------------------------------------------
-        # Extract numeric timing value (seconds)
-        # -------------------------------------------------
+        # Extract timing values
         TIME=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+')
+        [[ -z "$TIME" ]] && continue 
 
-        # -------------------------------------------------
-        # Normalize text for algorithm detection
-        # (handles uppercase/lowercase differences)
-        # -------------------------------------------------
         LOWER_LINE=$(echo "$line" | tr '[:upper:]' '[:lower:]')
 
-        # -------------------------------------------------
-        # Identify PQC algorithm
-        # -------------------------------------------------
-        if [[ "$LOWER_LINE" == *"kyber768"* ]] || [[ "$LOWER_LINE" == *"kyber 768"* ]]; then
-            ALG="Kyber-768"
-
-        elif [[ "$LOWER_LINE" == *"bike"* ]]; then
-            ALG="BIKE-L1"
-
+        # Map Line to Algorithm and its corresponding Communication Size
+        if [[ "$LOWER_LINE" == *"kyber_768"* ]]; then
+            ALG="Kyber-768"; COMM=$KYBER_COMM
+        elif [[ "$LOWER_LINE" == *"bike_l1"* ]]; then
+            ALG="BIKE-L1"; COMM=$BIKE_COMM
         elif [[ "$LOWER_LINE" == *"mceliece"* ]]; then
-            ALG="Classic-McEliece"
-
+            ALG="Classic-McEliece"; COMM=$MCELIECE_COMM
         else
-            # Skip lines that are not algorithm-related
             continue
         fi
 
-        # -------------------------------------------------
-        # Identify operation type
-        # -------------------------------------------------
-        if [[ "$line" == *"KeyGen"* ]]; then
-            OP="KeyGen"
+        # Map Line to Operation
+        if [[ "$line" == *"KeyGen"* ]]; then OP="KeyGen"
+        elif [[ "$line" == *"Encapsulation"* ]]; then OP="Encapsulation"
+        elif [[ "$line" == *"Decapsulation"* ]]; then OP="Decapsulation"
+        else continue; fi
 
-        elif [[ "$line" == *"Encapsulation"* ]]; then
-            OP="Encapsulation"
-
-        elif [[ "$line" == *"Decapsulation"* ]]; then
-            OP="Decapsulation"
-
-        else
-            # Skip irrelevant output lines
-            continue
-        fi
-
-        # -------------------------------------------------
-        # Write structured row into CSV
-        # Format:
-        # Device,Algorithm,Type,Operation,Iteration,Time,MemoryKB,CPU
-        # -------------------------------------------------
-        echo "$DEVICE,$ALG,PQC,$OP,$i,$TIME,$MEM,$CPU" >> "$OUTPUT"
-
+        # Write data to CSV
+        echo "$DEVICE,$ALG,PQC,$OP,$i,$TIME,$MEM,$CPU,$COMM" >> "$OUTPUT"
     done
 done
 
-# =========================================================
-# FINAL OUTPUT MESSAGE
-# =========================================================
-
-echo "Done! PQC results saved to $OUTPUT"
+echo "PQC Benchmarks Complete. Data saved to $OUTPUT"
