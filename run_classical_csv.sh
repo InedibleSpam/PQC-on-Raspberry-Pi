@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DEVICE="RaspberryPi"
-ITERATIONS=5
+DEVICE="Raspberry Pi"
+ITERATIONS=1000
 OUTPUT="classical_${DEVICE}_benchmarks.csv"
 
 # Added CommSize column to reflect Network Viability

@@ -5,10 +5,10 @@
 # =========================================================
 
 # Label for dataset comparison (Laptop vs Raspberry Pi)
-DEVICE="Laptop"
+DEVICE="Raspberri Pi"
 
 # Number of repeated runs for statistical reliability
-ITERATIONS=5
+ITERATIONS=1000
 
 # Output CSV file name
 OUTPUT="pqc_sig_comparison_${DEVICE}_${ITERATIONS}.csv"

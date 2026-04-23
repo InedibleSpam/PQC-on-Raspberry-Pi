@@ -2,10 +2,10 @@
 
 
 # Label for dataset (Laptop vs Raspberry Pi)
-DEVICE="Laptop"
+DEVICE="Raspberry Pi"
 
 # Number of repeated runs for statistical stability
-ITERATIONS=5
+ITERATIONS=1000
 
 # Output CSV file name
 OUTPUT="pqc_kem_comparison_${DEVICE}_${ITERATIONS}.csv"
